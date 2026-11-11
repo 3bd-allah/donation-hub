@@ -15,7 +15,7 @@ public sealed class DonationOptions
     public decimal MaxAmount { get; set; }
 
     [Required(ErrorMessage ="{0} is required")]
-    public double PindingTimeoutMinutes { get; set; }
+    public double PendingTimeoutMinutes { get; set; }
 
     
     [Required(ErrorMessage ="{0} is required")]

@@ -45,10 +45,7 @@ public class Program
         if (app.Environment.IsDevelopment())
         {
             app.MapOpenApi();
-            app.MapScalarApiReference(options =>
-            {
-                
-            });
+            app.MapScalarApiReference();
         }
 
         app.UseHttpsRedirection();
