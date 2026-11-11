@@ -12,7 +12,6 @@ namespace DonationHub.Application.Features.Authentication.Refresh;
 
 public sealed class RotateRefreshTokenHandler(
     ITokenService tokenService,
-    IRefreshTokenRepository refreshTokenRepository,
     TimeProvider timeProvider,
     IUserService userActive,
     IUnitOfWork unitOfWork,
@@ -77,7 +76,7 @@ public sealed class RotateRefreshTokenHandler(
         // refresh token rotation
         RefreshToken.Rotation(oldRefreshToken, newRefreshToken, utcNow);
         
-        refreshTokenRepository.Add(newRefreshToken);
+        repository.Add(newRefreshToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return RequestResponse<RotateRefreshTokenResponseDto>.Ok(AuthCodes.Success, refreshTokenRotationResponse);

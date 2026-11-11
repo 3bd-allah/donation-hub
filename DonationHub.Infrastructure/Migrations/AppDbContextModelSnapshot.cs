@@ -81,7 +81,7 @@ namespace DonationHub.Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<DateTimeOffset>("UpdatedAt")
+                    b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("datetimeoffset");
 
                     b.HasKey("Id");
@@ -466,7 +466,7 @@ namespace DonationHub.Infrastructure.Migrations
 
                             b1.HasKey("CampaignId");
 
-                            b1.ToTable("Campaigns", (string)null);
+                            b1.ToTable("Campaigns");
 
                             b1.WithOwner()
                                 .HasForeignKey("CampaignId");
@@ -478,7 +478,9 @@ namespace DonationHub.Infrastructure.Migrations
                                 .HasColumnType("uniqueidentifier");
 
                             b1.Property<decimal>("Amount")
+                                .ValueGeneratedOnAdd()
                                 .HasColumnType("decimal(18,2)")
+                                .HasDefaultValue(0m)
                                 .HasColumnName("RaisedAmount");
 
                             b1.Property<string>("Currency")
@@ -491,7 +493,7 @@ namespace DonationHub.Infrastructure.Migrations
 
                             b1.HasKey("CampaignId");
 
-                            b1.ToTable("Campaigns", (string)null);
+                            b1.ToTable("Campaigns");
 
                             b1.WithOwner()
                                 .HasForeignKey("CampaignId");
@@ -540,7 +542,7 @@ namespace DonationHub.Infrastructure.Migrations
 
                             b1.HasKey("DonationId");
 
-                            b1.ToTable("Donations", (string)null);
+                            b1.ToTable("Donations");
 
                             b1.WithOwner()
                                 .HasForeignKey("DonationId");

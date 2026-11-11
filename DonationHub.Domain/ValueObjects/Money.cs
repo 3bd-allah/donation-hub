@@ -6,11 +6,11 @@ namespace DonationHub.Domain.ValueObjects;
 public sealed record Money : ValueObject
 {
     private const int DefaultLength = 3;
-    public decimal Amount{ get; private set; }
-    public string Currency { get; set; } = WebApplicationConstants.DefaultCurrency;
+    public decimal Amount { get; private set; } 
+    public string Currency { get; set; } 
 
 
-    public Money(decimal amount, string currency)
+    public Money(decimal amount, string currency = WebApplicationConstants.DefaultCurrency)
     {
         if (amount < 0)
             throw new ArgumentException("Value cannot be negative.", nameof(amount));

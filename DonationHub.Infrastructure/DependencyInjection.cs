@@ -10,7 +10,6 @@ using DonationHub.Infrastructure.Persistence;
 using DonationHub.Infrastructure.Persistence.Seed;
 using DonationHub.Infrastructure.Repositories;
 using DonationHub.Infrastructure.Services;
-using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -27,8 +26,8 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
     {
-        // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-        services.AddOpenApi();
+
+        
 
         // Timezone configuration
         services.AddSingleton<TimeProvider>(TimeProvider.System);

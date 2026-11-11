@@ -20,30 +20,35 @@ public class Program
         builder.Services.AddApplicationServices();
         builder.Services.AddInfrastructureServices(builder.Configuration);
 
-        
-        
+
+        // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+        builder.Services.AddOpenApi();
+
         var app = builder.Build();
 
-        //await using (var scope = app.Services.CreateAsyncScope())
-        //{
-        //    var dbContext = scope.ServiceProvider
-        //        .GetRequiredService<AppDbContext>();
+        await using (var scope = app.Services.CreateAsyncScope())
+        {
+            var dbContext = scope.ServiceProvider
+                .GetRequiredService<AppDbContext>();
 
-        //    // Ensure Identity tables exist.
-        //    await dbContext.Database.MigrateAsync();
+            // Ensure Identity tables exist.
+            await dbContext.Database.MigrateAsync();
 
-        //    var seeder = scope.ServiceProvider
-        //        .GetRequiredService<DatabaseSeeder>();
+            var seeder = scope.ServiceProvider
+                .GetRequiredService<DatabaseSeeder>();
 
-        //    await seeder.SeedAsync();
-        //}
+            await seeder.SeedAsync();
+        }
 
 
         // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment())
         {
             app.MapOpenApi();
-            app.MapScalarApiReference();
+            app.MapScalarApiReference(options =>
+            {
+                
+            });
         }
 
         app.UseHttpsRedirection();

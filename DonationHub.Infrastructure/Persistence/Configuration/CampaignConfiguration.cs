@@ -40,7 +40,7 @@ public class CampaignConfiguration : IEntityTypeConfiguration<Campaign>
             .IsRequired();
 
         builder.Property(c => c.UpdatedAt)
-            .IsRequired();
+            .IsRequired(false);
 
         builder.Property(c => c.IsDeleted)
             .IsRequired();
@@ -84,13 +84,12 @@ public class CampaignConfiguration : IEntityTypeConfiguration<Campaign>
             money.Property(m => m.Amount)
             .HasColumnName("RaisedAmount")
             .HasColumnType("decimal(18,2)")
-            .IsRequired();
+            .HasDefaultValue(0);
 
             money.Property(m => m.Currency)
                 .HasColumnName("RaisedAmountCurrency")
                 .HasMaxLength(3)
-                .HasDefaultValue("USD")
-                .IsRequired();
+                .HasDefaultValue("USD");
         });
 
         builder.Property(c => c.RowVersion)
