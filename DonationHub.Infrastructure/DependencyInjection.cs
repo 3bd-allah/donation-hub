@@ -27,10 +27,8 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
     {
 
-        
-
         // Timezone configuration
-        services.AddSingleton<TimeProvider>(TimeProvider.System);
+        services.AddSingleton(TimeProvider.System);
 
         // Add Auth services
         services.AddScoped<IRegisterService, RegisterService>();
@@ -97,8 +95,6 @@ public static class DependencyInjection
         // Add Repositories
         services.AddScoped(typeof(IBaseRepository<>), typeof(BaseRepository<>));
         services.AddScoped<IUnitOfWork, UnitOfWork>();
-        services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
-
 
         //Add Authentication and Authorization
         services.AddAuthentication(options =>

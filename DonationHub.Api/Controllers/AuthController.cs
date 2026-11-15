@@ -19,9 +19,9 @@ public class AuthController(IMediator mediator) : BaseController
 {
     [AllowAnonymous]
     [HttpPost("auth/register")]
-    public async Task<ActionResult<EndPointResponse>> Register(RegisterRequestViewModel registerVM, CancellationToken ct)
+    public async Task<ActionResult<EndpointResponse>> Register(RegisterRequestViewModel registerVM, CancellationToken ct)
     {
-        var result = await mediator.Send(new RegisterCommand(
+        var result = await mediator.Send(new RegisterOrchestrator(
             registerVM.Email, 
             registerVM.FullName, 
             registerVM.Password,
@@ -29,11 +29,11 @@ public class AuthController(IMediator mediator) : BaseController
 
         if (result.Success)
         {
-            return EndPointResponse.Ok(StatusCodes.Status201Created);
+            return EndpointResponse.Ok(StatusCodes.Status201Created);
         }
         else
         {
-            return EndPointResponse.Fail(StatusCodes.Status409Conflict, result.Errors);
+            return EndpointResponse.Fail(StatusCodes.Status409Conflict, result.Errors);
         }
     }
 
@@ -43,7 +43,7 @@ public class AuthController(IMediator mediator) : BaseController
         LoginRequestViewModel loginViewModel, 
         CancellationToken ct)
     {
-        var result = await mediator.Send(new LoginCommand(loginViewModel.Email, loginViewModel.Password), ct);
+        var result = await mediator.Send(new LoginOrchestrator(loginViewModel.Email, loginViewModel.Password), ct);
         if (!result.Success)
             return EndPointResponse<LoginResponseViewModel>.Fail(result.Code, result.Errors!);
 
@@ -79,12 +79,12 @@ public class AuthController(IMediator mediator) : BaseController
 
     [Authorize]
     [HttpPost("auth/logout")]
-    public async Task<ActionResult<EndPointResponse>> Logout(LogoutRequestViewModel request, CancellationToken ct)
+    public async Task<ActionResult<EndpointResponse>> Logout(LogoutRequestViewModel request, CancellationToken ct)
     {
-        var result = await mediator.Send(new LogoutCommand(request.RefreshToken), ct);
+        var result = await mediator.Send(new LogoutOrchestrator(request.RefreshToken), ct);
         if (!result.Success)
-            return EndPointResponse.Fail(result.Code);
-        return EndPointResponse.Ok(result.Code);
+            return EndpointResponse.Fail(result.Code);
+        return EndpointResponse.Ok(result.Code);
     }
 
 
@@ -92,7 +92,7 @@ public class AuthController(IMediator mediator) : BaseController
     [HttpGet("auth/me")]
     public async Task<ActionResult<EndPointResponse<CurrentProfileViewModel>>> Me(MeRequestViewModel request, CancellationToken ct)
     {
-        var result = await mediator.Send(new CurrentProfileQuery(request.Id), ct);
+        var result = await mediator.Send(new GetCurrentProfileOrchestrator(request.Id), ct);
         if (!result.Success)
             return EndPointResponse<CurrentProfileViewModel>.Fail(result.Code);
         var profileResponse = new CurrentProfileViewModel(
@@ -105,7 +105,7 @@ public class AuthController(IMediator mediator) : BaseController
 
     [Authorize(Roles = nameof(Roles.Admin))]
     [HttpPost("admin/staff")]
-    public async Task<ActionResult<EndPointResponse>> AdminStaff()
+    public async Task<ActionResult<EndpointResponse>> AdminStaff()
     {
         return Ok("hello from admin page");
     }

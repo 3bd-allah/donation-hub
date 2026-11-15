@@ -1,4 +1,5 @@
-﻿using DonationHub.Application.Shared;
+﻿using DonationHub.Application.Shared.ResultPattern;
+using DonationHub.Domain.Enums;
 
 namespace DonationHub.Application.Abstractions.Authentication;
 
@@ -11,7 +12,14 @@ public interface IRegisterService : IEmailExist
     /// <param name="fullName">the name of the user account</param>
     /// <param name="password">passowrd of the user account</param>
     /// <param name="preferredLanguage">preferred language of the user account</param>
+    /// <param name="role">the role of the registered user</param>
     /// <param name="ct">cancellation token to abort the request, if user cancelled from the client</param>
-    /// <returns>return a proper RequestResponse type</returns>
-    Task<RequestResponse> RegisterAsync(string email, string fullName, string password, string preferredLanguage, CancellationToken ct);
+    /// <returns>return true if the user registered successfully, otherwise false</returns>
+    Task<Guid?> RegisterAsync(
+        string email,
+        string fullName,
+        string password,
+        string preferredLanguage, 
+        Roles role,
+        CancellationToken ct);
 }

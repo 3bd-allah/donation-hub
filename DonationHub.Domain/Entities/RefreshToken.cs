@@ -32,14 +32,14 @@ public sealed class RefreshToken : Entity, ICreatedAt
         return new RefreshToken(userId, tokenHash, expiresAt);
     }
 
-    public static void Rotation(RefreshToken oldRefreshToken, RefreshToken newRefreshToken, DateTimeOffset utcNow)
+    public void Rotate(Guid newTokenId, DateTimeOffset utcNow)
     {
-        oldRefreshToken.RevokedAt = utcNow;
-        oldRefreshToken.ReplacedByTokenId = newRefreshToken.Id;
+        RevokedAt = utcNow;
+        ReplacedByTokenId = newTokenId;
     }
 
-    public static void Revoke(RefreshToken refreshToken, DateTimeOffset utcNow)
+    public void Revoke(DateTimeOffset utcNow)
     {
-        refreshToken.RevokedAt = utcNow;
+        RevokedAt = utcNow;
     }
 }

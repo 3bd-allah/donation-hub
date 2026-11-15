@@ -1,8 +1,8 @@
-﻿using DonationHub.Application.Shared;
+﻿using DonationHub.Application.Shared.ResultPattern;
 
 namespace DonationHub.Application.Abstractions.Authentication;
 
 public interface IEmailExist 
 {
-    Task<RequestResponse> IsEmailExistAsync(string email);
+    Task<bool> IsEmailExistAsync(string email);
 }

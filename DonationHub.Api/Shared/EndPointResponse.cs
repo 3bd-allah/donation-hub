@@ -1,42 +1,49 @@
 ﻿namespace DonationHub.Api.Shared;
 
-public class EndPointResponse
+public class EndpointResponse
 {
-    public int? StatusCode { get; init; }
     public bool Success { get; init; }
-    public Dictionary<string, string[]>? Errors { get; init; }
+    public int StatusCode { get; init; }
+    public IReadOnlyList<EndpointError>? Errors { get; init; }
+    public string? Message { get; init; } = "";
+    public DateTime TimeStamp { get; init; } = DateTime.UtcNow;
 
-    public static EndPointResponse Ok(int? statusCode) =>
-        new()
+
+    public static EndpointResponse OK(int statusCode = 200, string msg = "")
+        => new()
         {
-            StatusCode = statusCode,
             Success = true,
-        };
-    public static EndPointResponse Fail(int? statusCode, Dictionary<string, string[]>? errors = null) =>
-        new()
-        {
             StatusCode = statusCode,
+            Message = msg
+        };
+    public static EndpointResponse Fail(int statusCode, string msg, IReadOnlyList<EndpointError> errors)
+        => new()
+        {
             Success = false,
+            StatusCode = statusCode,
+            Message = msg,
             Errors = errors
         };
 }
 
 
-public class EndPointResponse<T> : EndPointResponse
+public class EndpointResponse<T> : EndpointResponse
 {
     public T? Data { get; init; }
-    public static EndPointResponse<T> Ok(int? statusCode, T data) =>
-        new()
+    public static EndpointResponse<T> OK(T data, int statusCode = 200, string msg = "")
+        => new()
         {
-            StatusCode = statusCode,
             Success = true,
-            Data = data
-        };
-    public static new EndPointResponse<T> Fail(int? statusCode, Dictionary<string, string[]>? errors = null) =>
-        new()
-        {
+            Data = data,
             StatusCode = statusCode,
+            Message = msg
+        };
+    public static new EndpointResponse<T> Fail(int statusCode, string msg, IReadOnlyList<EndpointError> errors)
+        => new()
+        {
             Success = false,
+            StatusCode = statusCode,
+            Message = msg,
             Errors = errors
         };
 }

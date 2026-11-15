@@ -186,7 +186,7 @@ public class DatabaseSeeder(
             createdByUserId: admin.Id,
             utcNow: now);
 
-        await dbContext.Campaigns.AddAsync(campaign);
+        dbContext.Campaigns.Add(campaign);
 
         await dbContext.SaveChangesAsync();
     }

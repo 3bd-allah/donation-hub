@@ -3,23 +3,25 @@ using DonationHub.Infrastructure.Identity;
 using DonationHub.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Identity;
 using DonationHub.Domain.Enums;
-using DonationHub.Application.Shared;
-using DonationHub.Application.Features.Authentication.Common;
 namespace DonationHub.Infrastructure.Authentication;
 
 public class RegisterService(
     UserManager<ApplicationUser> userManager, 
     AppDbContext context) : IRegisterService
 {
-    public async Task<RequestResponse> IsEmailExistAsync(string email)
+    public async Task<bool> IsEmailExistAsync(string email)
     {
         var user = await userManager.FindByEmailAsync(email);
-        return user is not null?
-            RequestResponse.Fail(AuthCodes.EmailAlreadyExists, new() { { "email", ["EmailAlreadyExist"] } }) :
-            RequestResponse.Ok();
+        return user is not null;
     }
 
-    public async Task<RequestResponse> RegisterAsync(string email, string fullName,string password, string preferredLanguage, CancellationToken ct)
+    public async Task<Guid?> RegisterAsync(
+        string email,
+        string fullName,
+        string password, 
+        string preferredLanguage,
+        Roles userRole,
+        CancellationToken ct)
     {
 
         using var transaction = await context.Database.BeginTransactionAsync(ct);
@@ -28,28 +30,17 @@ public class RegisterService(
 
         
         var createUserResult = await userManager.CreateAsync(createdUser, password);
-        if (!createUserResult.Succeeded)
+        if (createUserResult.Succeeded)
         {
-            await transaction.RollbackAsync(ct);
-            return RequestResponse.Fail(500, new() 
-                {
-                    { "User Creation", [.. createUserResult.Errors.Select(err => err.Description)]}
-                }
-            );
-        }
-
-        var assignRoleResult = await userManager.AddToRoleAsync(createdUser, Roles.Donor.ToString());
-        if (!assignRoleResult.Succeeded)
-        {
-            await transaction.RollbackAsync(ct);
-            var errors = assignRoleResult.Errors.Select(er => er.Description);
-            return RequestResponse.Fail(500, new()
+            var assignRoleResult = await userManager.AddToRoleAsync(createdUser, userRole.ToString());
+            if (assignRoleResult.Succeeded)
             {
-                { "Assigning User Role", [.. errors] }
-            });
+
+                await transaction.CommitAsync(ct);
+                return createdUser.Id;
+            }
         }
-        
-        await transaction.CommitAsync(ct);
-        return RequestResponse.Ok();
+        await transaction.RollbackAsync(ct);
+        return null;
     }
 }

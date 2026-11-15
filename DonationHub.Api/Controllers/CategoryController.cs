@@ -63,7 +63,7 @@ namespace DonationHub.Api.Controllers
 
         [Authorize(Roles = nameof(Roles.Admin))]
         [HttpPost("categories")]
-        public async Task<ActionResult<EndPointResponse>> AddNew(
+        public async Task<ActionResult<EndpointResponse>> AddNew(
             CreateCategoryRequestViewModel request,
             CancellationToken ct)
         {
@@ -75,9 +75,9 @@ namespace DonationHub.Api.Controllers
                     request.DescriptionEn), ct);
 
             if (!result.Success)
-                return EndPointResponse.Fail(StatusCodes.Status400BadRequest, result.Errors);
+                return EndpointResponse.Fail(StatusCodes.Status400BadRequest, result.Errors);
 
-            return EndPointResponse.Ok(StatusCodes.Status201Created);
+            return EndpointResponse.Ok(StatusCodes.Status201Created);
         }
 
         [Authorize(Roles = nameof(Roles.Admin))]
@@ -111,13 +111,13 @@ namespace DonationHub.Api.Controllers
 
         [Authorize(Roles = nameof(Roles.Admin))]
         [HttpDelete("categories/{id:guid:required}")]
-        public async Task<ActionResult<EndPointResponse>> Delete(Guid id, CancellationToken ct)
+        public async Task<ActionResult<EndpointResponse>> Delete(Guid id, CancellationToken ct)
         {
             var result = await mediator.Send(new DeleteCategoryCommand(id), ct);
             if (!result.Success)
-                return EndPointResponse.Fail(result.Code, result.Errors);
+                return EndpointResponse.Fail(result.Code, result.Errors);
 
-            return EndPointResponse.Ok(StatusCodes.Status204NoContent);
+            return EndpointResponse.Ok(StatusCodes.Status204NoContent);
         }
     }
 }

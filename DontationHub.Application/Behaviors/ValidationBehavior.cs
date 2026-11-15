@@ -1,9 +1,13 @@
-﻿using FluentValidation;
+﻿using DonationHub.Application.Abstractions.Messaging;
+using DonationHub.Application.Shared.ResultPattern;
+using FluentValidation;
 using MediatR;
 
 namespace DonationHub.Application.Behaviors;
-public class ValidationBehavior<TReqeust, TResponse>(IEnumerable<IValidator<TReqeust>> validators) 
-    : IPipelineBehavior<TReqeust, TResponse> where TReqeust : notnull
+public class ValidationBehavior<TReqeust, TResponse>( IEnumerable<IValidator<TReqeust>> validators ) 
+    : IPipelineBehavior<TReqeust, TResponse> 
+    where TReqeust : ICommand<TResponse>
+    where TResponse : RequestResponse
 {
     public async Task<TResponse> Handle(TReqeust request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
     {

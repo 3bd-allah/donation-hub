@@ -6,7 +6,7 @@ namespace DonationHub.Application.Abstractions.Persistence;
 public interface IBaseRepository<TEntity> where TEntity : Entity
 {
 
-    ValueTask<TEntity?> GetById(Guid entityId, CancellationToken cancellationToken=default);
+    ValueTask<TEntity?> GetByIdAsync(Guid entityId, CancellationToken cancellationToken=default);
 
     IQueryable<TEntity> GetAll();
 
@@ -18,7 +18,34 @@ public interface IBaseRepository<TEntity> where TEntity : Entity
 
     void Delete(TEntity entity);
 
-    public Task<bool> IsExistAsync(Guid entityId, CancellationToken cancellationToken=default);
+    Task<int> DeleteAsync(Guid id, CancellationToken ct = default);
 
+    Task<bool> AnyAsync(
+        Expression<Func<TEntity, bool>> predicate,
+        CancellationToken cancellationToken = default);
+    Task<bool> IsExistAsync(Guid entityId, CancellationToken cancellationToken = default);
+
+
+    // Retrieve entities
+    Task<TEntity?> FirstOrDefaultAsync(
+        Expression<Func<TEntity, bool>> predicate,
+        CancellationToken cancellationToken = default);
+
+    // Retrieve projected data
+    Task<TResult?> FirstOrDefaultAsync<TResult>(
+        Expression<Func<TEntity, bool>> predicate,
+        Expression<Func<TEntity, TResult>> selectors,
+        CancellationToken cancellationToken = default);
+
+    // Retrieve multiple entities
+    Task<List<TEntity>> GetAllAsync(
+        Expression<Func<TEntity, bool>>? predicate = null,
+        CancellationToken cancellationToken = default);
+
+    // Retrieve projected data
+    Task<List<TResult>> GetAllAsync<TResult>(
+        Expression<Func<TEntity, bool>>? predicate,
+        Expression<Func<TEntity, TResult>> selectors,
+        CancellationToken cancellationToken = default);
 
 }

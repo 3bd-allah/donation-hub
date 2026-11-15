@@ -3,7 +3,7 @@ using FluentValidation;
 
 namespace DonationHub.Application.Features.Authentication.Login;
 
-public sealed class LoginCommandValidator : AbstractValidator<LoginCommand>
+public sealed class LoginCommandValidator : AbstractValidator<LoginOrchestrator>
 {
     public LoginCommandValidator()
     {

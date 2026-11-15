@@ -1,16 +1,23 @@
-﻿using DonationHub.Application.Features.Authentication.Common;
-using DonationHub.Application.Features.Authentication.CurrentProfile;
+﻿using DonationHub.Application.Features.Authentication.CurrentProfile;
+using DonationHub.Application.Features.Users.Common;
 
 namespace DonationHub.Application.Abstractions.Authentication;
 
 public interface IUserService
 {
     /// <summary>
-    /// method if the user is active gets its requried data
+    /// check if the user is active or not
     /// </summary>
     /// <param name="id">the id of the user you want to check if active or not</param>
-    /// <returns>return UserDataDto object of proper data</returns>
-    Task<UserDataDto?> IsUserActiveAsync(Guid id);
+    /// <returns>return true if the user is active, otherwise false.</returns>
+    Task<bool> IsUserActiveAsync(Guid id);
 
-    Task<CurrentProfileDto?> GetUserProfileAsync(Guid id);
+    /// <summary>
+    /// get the user profile data 
+    /// </summary>
+    /// <param name="id">the identifier of the user to get its data</param>
+    /// <returns>the data of the user profile</returns>
+    Task<UserDataDto?> GetUserByIdAsync(Guid id);
+
+
 }
