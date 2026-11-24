@@ -1,8 +1,15 @@
 <Solution>
   <Folder Name="/src/">
-    <Project Path="DonationHub.Api/DonationHub.Api.csproj" />
-    <Project Path="DonationHub.Domain/DonationHub.Domain.csproj" />
-    <Project Path="DonationHub.Infrastructure/DonationHub.Infrastructure.csproj" />
-    <Project Path="DontationHub.Application/DonationHub.Application.csproj" />
+    <Project Path="src/DonationHub.Api/DonationHub.Api.csproj" />
+    <Project Path="src/DonationHub.Application/DonationHub.Application.csproj" />
+    <Project Path="src/DonationHub.Domain/DonationHub.Domain.csproj" />
+    <Project Path="src/DonationHub.Infrastructure/DonationHub.Infrastructure.csproj" />
   </Folder>
+  
+
+  <Folder Name="/tests/">
+    <Project Path="tests/DonationHub.Application.Test/DonationHub.Application.Test.csproj" Id="34dfa329-e48c-44ab-ad21-eb052670f968" />
+    <Project Path="tests/DonationHub.Domain.Test/DonationHub.Domain.Test.csproj" Id="30533dd2-179c-44b2-bbc2-fafc939476d5" />
+  </Folder>
+
 </Solution>
