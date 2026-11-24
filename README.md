@@ -1,363 +1,191 @@
 # DonationHub
 
-A RESTful donation management and crowdfunding platform built with **ASP.NET Core 10**, following **Clean Architecture**, **Vertical Slice Architecture**, and **Domain-Driven Design (DDD)** principles.
+DonationHub is a donation management and crowdfunding REST API built with **ASP.NET Core**. The solution follows **Clean Architecture** and uses **CQRS with MediatR**, the **Result pattern**, centralized error handling, and automated unit testing.
 
-DonationHub provides the foundation for managing users, authentication, categories, and campaigns, with secure JWT authentication and refresh-token rotation.
+## Architecture
 
-## Table of Contents
-
-- [Overview](#overview)
-- [Technologies](#technologies)
-- [Prerequisites](#prerequisites)
-- [Project Structure](#project-structure)
-- [Getting Started](#getting-started)
-- [Implemented Features](#implemented-features)
-- [Design Decisions](#design-decisions)
-
-## Overview
-
-DonationHub is designed to provide a secure and maintainable backend for a donation and crowdfunding platform.
-
-The solution is organized into four projects with a strict dependency direction. The Application layer follows Vertical Slice Architecture, organizing features around business use cases rather than technical layers.
-
-The application uses Entity Framework Core with SQL Server for persistence and ASP.NET Core Identity for user management.
-
-## Technologies
-
-- **Framework:** .NET 10
-- **Language:** C#
-- **Architecture:** Clean Architecture, Vertical Slice Architecture, CQRS
-- **Database:** SQL Server
-- **ORM:** Entity Framework Core
-- **Authentication:** ASP.NET Core Identity, JWT Bearer Authentication
-- **API Documentation:** OpenAPI and Scalar
-- **Validation:** Data Annotations and strongly typed Options
-- **Dependency Injection:** Built-in ASP.NET Core DI
-
-## Prerequisites
-
-Make sure you have the following installed:
-
-- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
-- [SQL Server](https://www.microsoft.com/en-us/sql-server/sql-server-downloads) with a running Database Engine instance
-- [Git](https://git-scm.com/downloads)
-- [Entity Framework Core CLI](https://learn.microsoft.com/en-us/ef/core/cli/dotnet) (only required when managing migrations manually)
-
-Verify your .NET installation:
-
-```bash
-dotnet --version
-```
-
-## Project Structure
-
-The solution uses four projects under the `src` directory:
+The solution is organized into four projects under `src/`, with automated tests under `tests/`.
 
 ```text
 DonationHub/
-│
 ├── src/
 │   ├── DonationHub.Api/
-│   │   └── Controllers, Program.cs, API configuration
-│   │
+│   │   ├── Controllers/
+│   │   ├── Exceptions/
+│   │   ├── Shared/
+│   │   └── ViewModels/
 │   ├── DonationHub.Application/
-│   │   └── Features/
-│   │       ├── Auth/
-│   │       └── Categories/
-│   │
+│   │   ├── Abstractions/
+│   │   ├── Behaviors/
+│   │   ├── Features/
+│   │   ├── Options/
+│   │   └── Shared/
 │   ├── DonationHub.Domain/
-│   │   └── Entities, Enums, ValueObjects, Interfaces
-│   │
+│   │   ├── Entities/
+│   │   ├── Enums/
+│   │   ├── Exceptions/
+│   │   ├── Interfaces/
+│   │   ├── Primitives/
+│   │   └── ValueObjects/
 │   └── DonationHub.Infrastructure/
-│       └── Persistence, Configurations, Repositories,
-│           Interceptors, Identity, Seeding
-│
+│       ├── Authentication/
+│       ├── Identity/
+│       ├── Interceptors/
+│       ├── Migrations/
+│       ├── Options/
+│       ├── Persistence/
+│       ├── Repositories/
+│       └── Services/
+├── tests/
+│   ├── DonationHub.Application.Test/
+│   └── DonationHub.Domain.Test/
 ├── DonationHub.slnx
 └── README.md
 ```
 
-### Layer Responsibilities
+### Project responsibilities
 
 | Project | Responsibility |
 |---|---|
-| **Domain** | Business entities, value objects, domain rules, and abstractions |
-| **Application** | Use cases organized into vertical slices, commands, queries, DTOs, and application interfaces |
-| **Infrastructure** | EF Core persistence, SQL Server, Identity implementation, repositories, interceptors, and data seeding |
-| **Api** | HTTP endpoints, middleware, dependency injection composition root, and API documentation |
+| **Domain** | Business entities, value objects, enums, domain interfaces, and business rules. It has no dependency on the other application layers. |
+| **Application** | Use cases organized as vertical slices, CQRS commands and queries, handlers, validators, abstractions, pipeline behaviors, and the Result pattern. |
+| **Infrastructure** | Implements persistence, EF Core configurations and migrations, repositories, Unit of Work, Identity, authentication services, and database interceptors. |
+| **Api** | HTTP entry point: controllers, request/response ViewModels, result-to-HTTP mapping, exception handling, and application configuration. |
+| **Tests** | Unit tests for application behaviors and use cases, domain entities, and shared components. |
 
-The dependency direction follows Clean Architecture:
+The dependency direction points inward: the Domain is independent, and outer layers implement or use abstractions defined by inner layers.
 
-```text
-           Api
-            |
-            v
-      Application
-            ^
-            |
-     Infrastructure
-            |
-            v
-          Domain
-```
+## Main design decisions
 
-Infrastructure implements abstractions defined by the inner layers. Domain remains independent of external frameworks and infrastructure concerns.
+### CQRS and vertical slices
 
-## Getting Started
+A **Command** represents an operation that changes application state; a **Query** retrieves data without changing state. Each use case is kept in its own feature slice, grouping its request, handler, validator, and related DTOs.
 
-### 1. Clone the Repository
+MediatR dispatches each request to its corresponding handler. This keeps controllers thin: they bind HTTP input, send a command or query, and translate the result into an HTTP response.
 
-```bash
-git clone <repository-url>
-cd DonationHub
-```
+### Read/write separation
 
-### 2. Configure User Secrets
+- **Writes** use the Repository and Unit of Work abstractions. This centralizes persistence operations and gives write use cases a consistent place to coordinate changes and saving.
+- **Reads** can query through the DbContext (or an Application abstraction over it), using `AsNoTracking()` and projection with `Select()` to retrieve only the required data.
 
-Sensitive configuration values are stored using **ASP.NET Core User Secrets** rather than committed to the repository.
+This avoids forcing read-only projections through a repository abstraction designed primarily around entity persistence. The trade-off is that query code is more closely shaped around the persistence model, so the Application layer should depend on an appropriate abstraction rather than directly referencing Infrastructure.
 
-Initialize User Secrets for the API project:
+### Result pattern and exceptions
 
-```bash
-dotnet user-secrets init --project src/DonationHub.Api
-```
+Expected application outcomes—such as validation failures, missing records, or concurrency conflicts—are represented as Result values rather than exceptions. The API maps these errors to the appropriate HTTP status and ProblemDetails response.
 
-Set the seeded Admin password:
+Exceptions remain appropriate for unexpected or exceptional situations, such as infrastructure failures or unhandled programming errors. The global exception handler logs the technical details and returns a sanitized response; internal exception details should not be exposed to API clients.
 
-```bash
-dotnet user-secrets set "SeedAdmin:Password" "<your-admin-password>" --project src/DonationHub.Api
-```
+### MediatR pipeline behaviors and validation
 
-Set the JWT signing secret:
+Pipeline behaviors wrap request-handler execution. They can run cross-cutting logic before and/or after a handler, without duplicating that logic in every use case.
 
-```bash
-dotnet user-secrets set "Jwt:Secret" "<your-secret-key-at-least-32-characters>" --project src/DonationHub.Api
-```
+`ValidationBehavior` obtains the registered FluentValidation validators for the request and executes them before the handler. It collects validation failures and returns a failed response when any exist. In that case, it does **not** call `next`, so the handler is not executed. If validation succeeds, it calls `next` and allows the request to continue.
 
-**Important:**
+When multiple behaviors are registered, they form a nested pipeline. The registration order determines which behavior is outermost and which runs closer to the handler; the corresponding unwind/after-handler work runs in reverse order. The exact order should be checked in the application's MediatR registration.
 
-- Use your own strong Admin password.
-- The JWT secret must contain at least 32 characters.
-- Never commit real passwords, JWT signing keys, or other sensitive configuration values.
-- Keep User Secrets local to your development environment.
+Input-shape rules (required values, lengths, and formats) belong in validators. Business invariants belong in the Domain.
 
-### 3. Configure the Database
+### Optimistic concurrency with RowVersion
 
-The application uses SQL Server with the following default connection string in `appsettings.json`:
+Campaign updates use a `RowVersion` value so the API can detect when a client is editing an outdated version of a campaign.
 
-```json
-{
-  "ConnectionStrings": {
-    "DefaultConnection": "Data Source=.; Initial Catalog=DonationHubDB; Integrated Security=True; Trust Server Certificate=True"
-  }
-}
-```
+The client sends the last version it received. The update flow compares it with the currently loaded campaign version and returns a concurrency-conflict error if they differ. EF Core should also configure the property with `IsRowVersion()` so the database checks the version at save time. If another update wins between loading and saving, EF Core reports a `DbUpdateConcurrencyException`, which should be translated into the campaign concurrency-conflict result (HTTP `409 Conflict`).
 
-This configuration connects to the default local SQL Server instance and creates/uses a database named `DonationHubDB`.
+This is **optimistic** concurrency: simultaneous edits are allowed to proceed, and a conflict is detected when saving. It is suitable when collisions are relatively uncommon. **Pessimistic locking** is an alternative when contention is high or a workflow must reserve data while it is being processed; it can reduce conflicting writes but introduces lock contention, waiting, and possible deadlocks.
 
-If your SQL Server instance uses a different name, update `Data Source` accordingly.
+### CancellationToken
 
-For example:
+The request cancellation token should be forwarded from the controller through MediatR, handlers, repositories, and EF Core asynchronous operations.
 
-```text
-Data Source=YOUR_SERVER_NAME;
-```
+If it is forwarded, downstream operations that observe the token can stop work after the client disconnects or the request is cancelled. If it is not forwarded, the running database operation may continue even though the caller is no longer waiting for the response, wasting resources.
 
-#### Database Migrations
+### TimeProvider
 
-EF Core migrations are already included in the repository.
+Handlers obtain the current time through the injected `TimeProvider` instead of directly calling `DateTime.UtcNow`. Tests can supply a controlled time provider, making date-dependent behavior—such as campaign end-date validation—repeatable and deterministic.
 
-**You do not need to run a migration command manually for the normal first-time setup.** The application automatically applies pending migrations at startup using:
+## Technology and package decisions
 
-```csharp
-await dbContext.Database.MigrateAsync();
-```
+- **.NET 10** (`net10.0`).
+- **MediatR 12.5.0** is pinned as `[12.5.0]` to prevent an automatic upgrade to version 13 or later, which has different commercial licensing terms.
+- **FluentAssertions 7.0.0** is pinned because it uses the Apache 2.0 license; version 8 and later use a commercial license.
+- **Moq 4.18.4** is pinned as specified by the project task guide.
+- **FluentValidation** provides request validation.
+- **EF Core with SQL Server** provides persistence.
+- **xUnit** is used for unit testing.
 
-If you need to update the database manually, run:
+Keep the pinned package versions unless a project maintainer or mentor approves a change.
+
+## Build, test, and run
+
+Run build and test commands from the **solution root directory** (the directory containing `DonationHub.slnx`).
+
+### Build the solution
 
 ```bash
-dotnet ef database update --project src/DonationHub.Infrastructure --startup-project src/DonationHub.Api
+dotnet build
 ```
 
-If the EF Core CLI is not installed:
+Builds the projects included in the solution and reports compilation errors.
+
+### Run the tests
 
 ```bash
-dotnet tool install --global dotnet-ef
+dotnet test
 ```
 
-### 4. Run the Application
+Builds and runs the test projects included in the solution, then reports the test results.
 
-From the solution root:
+### Run the API
+
+First, change the working directory to the API project:
 
 ```bash
-dotnet run --project src/DonationHub.Api --launch-profile http
+cd src/DonationHub.Api
 ```
 
-The API will be available at:
+Then start the application:
 
-```text
-http://localhost:5119
+```bash
+dotnet run
 ```
 
-**Scalar API Documentation:**
+The API uses the URLs configured by its active launch profile or application configuration. In Development, use the configured Scalar/OpenAPI endpoint to explore and test the endpoints.
 
-```text
-http://localhost:5119/scalar/v1
+## Unit testing
+
+Tests follow the **Arrange – Act – Assert (AAA)** pattern. The test projects cover:
+
+- Domain entity rules and state transitions.
+- Application command validators.
+- Command-handler outcomes and persistence interactions.
+- MediatR pipeline behavior, including validation short-circuiting.
+
+Dependencies such as repositories and time providers can be substituted in unit tests so the behavior can be tested independently. Tests should focus on application and domain behavior rather than testing EF Core itself or simple property getters.
+
+Run the complete suite with:
+
+```bash
+dotnet test
 ```
 
-Scalar provides interactive API documentation and allows you to execute requests directly against the running application. It is configured with Bearer authentication for testing protected endpoints.
+## Error responses
 
-**Note:** Scalar and the OpenAPI document are available in the Development environment only.
+Expected failures are mapped from the application's error type to an HTTP status code. Error responses use **RFC 9457 ProblemDetails** and include an application error `code` and request `traceId`. Validation responses can also include field-level errors.
 
+Unexpected exceptions are handled centrally. Technical details are logged, while clients receive a generic server-error response without internal implementation details.
 
-## Implemented Features
+## Review notes: alternatives and trade-offs
 
-### Authentication and Identity
+| Decision | Alternative | Reason for the chosen approach / trade-off |
+|---|---|---|
+| Commands and Queries (CQRS) | One service method for reads and writes | Separates state changes from reads and gives each use case a focused handler; it adds more request/handler types. |
+| Repository/UoW for writes; direct no-tracking query path for reads | Route every operation through repositories | Keeps write persistence coordinated while allowing efficient read projections; query code needs a suitable abstraction and can be more persistence-aware. |
+| Result for expected failures | Throw exceptions for business outcomes | Makes expected failures explicit and avoids using exceptions for normal control flow; callers must handle and map results. |
+| Exceptions for unexpected failures | Return Result for every possible failure | Preserves a clear distinction between expected outcomes and unexpected faults; unexpected exceptions still need centralized handling and logging. |
+| Pipeline validation | Validate manually in each handler/controller | Centralizes cross-cutting validation and can stop invalid requests before handlers run; behavior order depends on registration. |
+| Optimistic concurrency | Pessimistic locking | Avoids holding locks during ordinary edits and detects conflicts at update time; a conflicting client must handle/retry the update. |
+| CancellationToken propagation | Start operations without forwarding cancellation | Allows downstream work to stop when the request is cancelled; every asynchronous boundary must forward the token. |
+| TimeProvider | Direct calls to `DateTime.UtcNow` | Makes time controllable in tests; requires injecting and using the clock abstraction. |
 
-- User registration with ASP.NET Core Identity.
-- User login and JWT access-token generation.
-- Refresh-token generation and rotation.
-- Refresh tokens are stored as hashes rather than plaintext.
-- Refresh-token revocation during logout.
-- Current authenticated user profile endpoint.
-- Role-based authorization.
-- Initial Admin and role seeding.
-- Configuration-driven JWT settings and Admin credentials.
-
-### Categories Management
-
-- Create categories.
-- Retrieve all categories.
-- Retrieve a category by ID.
-- Update categories.
-- Delete categories.
-- Bilingual Arabic and English category names.
-- Public access to category read operations.
-- Admin-only access to category write operations.
-- Protection against deleting categories associated with campaigns.
-
-Deleting a category that still has associated campaigns returns `409 Conflict`.
-
-### Domain and Persistence
-
-- Rich domain models with encapsulated state and private setters.
-- Value objects and domain invariants.
-- Entity Framework Core Fluent API configurations.
-- SQL Server persistence and committed migrations.
-- Generic Repository and Unit of Work.
-- Soft deletion using `ISoftDeletable` and `SoftDeleteInterceptor`.
-- Global query filters for soft-deleted entities.
-- Strongly typed Options with startup validation.
-
-## Design Decisions
-
-### 1. Clean Architecture
-
-The solution is divided into four projects: Domain, Application, Infrastructure, and Api.
-
-**Why?**
-
-- Separates business rules from infrastructure and presentation concerns.
-- Makes the core business logic independent of external technologies.
-- Improves maintainability and testability.
-- Enforces dependency inversion.
-
-**Alternative:** A single-project or traditional layered architecture.
-
-**Trade-off:** Clean Architecture introduces additional projects, abstractions, and initial setup, but provides clearer boundaries as the application grows.
-
-### 2. Vertical Slice Architecture
-
-The Application layer organizes functionality by feature and use case rather than grouping all controllers, services, and DTOs into separate technical folders.
-
-**Why?**
-
-- Keeps related functionality together.
-- Improves cohesion.
-- Makes features easier to understand and maintain.
-- Reduces unnecessary coupling between unrelated features.
-
-**Alternative:** Traditional layered organization, where all services, DTOs, and validators are grouped separately.
-
-**Trade-off:** Some abstractions may be repeated between features, but each feature remains more independent.
-
-### 3. CQRS-Style Read/Write Separation
-
-The application separates query operations from command operations.
-
-**Writes:**
-
-Use the Generic Repository and Unit of Work abstractions.
-
-**Reads:**
-
-Query `AppDbContext` directly using `AsNoTracking()` and project results into DTOs.
-
-**Why?**
-
-- Write operations use centralized persistence abstractions.
-- Read operations avoid unnecessary change tracking.
-- DTO projection retrieves only the required data.
-- Avoids forcing read-only queries through repository abstractions when direct EF Core queries are more suitable.
-
-**Alternative:** Using repositories for both reads and writes.
-
-**Trade-off:** Read operations depend more directly on EF Core, but gain flexibility and avoid unnecessary abstraction overhead.
-
-### 4. Rich Domain Model and Value Objects
-
-Entities encapsulate their state using private setters and expose behavior through domain methods.
-
-Value objects represent concepts that have value-based equality, such as `Money`.
-
-**Why?**
-
-- Protects business invariants.
-- Prevents arbitrary changes to entity state.
-- Keeps business rules close to the domain objects they protect.
-
-**Alternative:** Anemic domain models with public setters and business logic implemented entirely in services.
-
-**Trade-off:** Rich domain models require more deliberate entity design and EF Core configuration, but help prevent invalid domain states.
-
-### 5. Soft Deletion with EF Core Interceptors
-
-Soft deletion is implemented using `ISoftDeletable`, `SoftDeleteInterceptor`, and global query filters.
-
-**Why?**
-
-- Preserves records instead of physically deleting them.
-- Centralizes soft-delete behavior.
-- Automatically excludes deleted records from normal queries.
-
-**Alternative:** Implementing soft-delete logic manually in every application feature.
-
-**Trade-off:** Interceptors and global filters introduce additional EF Core configuration and require explicit handling when deleted records must be queried.
-
-### 6. Strongly Typed Options and Startup Validation
-
-Configuration is represented through strongly typed options classes with Data Annotation validation and `ValidateOnStart()`.
-
-**Why?**
-
-- Provides structured and strongly typed configuration.
-- Detects missing or invalid configuration during startup.
-- Avoids scattering configuration key strings throughout the application.
-
-**Alternative:** Reading values directly through `IConfiguration`.
-
-**Trade-off:** Requires additional options classes and validation configuration, but makes configuration safer and easier to maintain.
-
-### 7. Refresh-Token Hashing and Rotation
-
-Refresh tokens are stored as hashes. When a refresh token is used, the previous token is revoked and replaced with a new token.
-
-**Why?**
-
-- Prevents stored refresh-token values from being directly reused if the database is exposed.
-- Limits the lifetime of individual refresh tokens.
-- Prevents replay of an already-rotated token.
-
-**Alternative:** Storing refresh tokens as plaintext or using long-lived tokens without rotation.
-
-**Trade-off:** Requires additional persistence and token-lifecycle logic, but improves authentication security.
-
+For the implementation details, the code and dependency-injection registrations are the source of truth—especially for pipeline registration order and EF Core concurrency configuration.
