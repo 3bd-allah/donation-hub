@@ -14,6 +14,8 @@ using DonationHub.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace DonationHub.Api.Controllers;
 
@@ -25,6 +27,7 @@ public class CampaignsController ( ISender sender ) : BaseController
     [HttpPost]
     public async Task<ActionResult> Create(CreateCampaignRequestViewModel request, CancellationToken ct)
     {
+        var userId = Guid.Parse(User.FindFirstValue(JwtRegisteredClaimNames.Sub)!);
 
         var result = await sender.Send(new CreateCampaignCommand(
             request.TitleAr,
@@ -36,7 +39,7 @@ public class CampaignsController ( ISender sender ) : BaseController
             request.EndDate,
             request.CategoryId,
             request.BannerFileName,
-            request.CreatedByUserId
+            userId
             ), ct);
 
         var response = ResultMapper.Map(result,
@@ -73,7 +76,6 @@ public class CampaignsController ( ISender sender ) : BaseController
                 dto.CreatedAt,
                 dto.BannerFileName,
                 dto.Status.ToString(),
-                dto.RowVersion,
                 dto.CreatedByUserId,
                 dto.CategoryName,
                 dto.ProgressPercent,
@@ -105,7 +107,6 @@ public class CampaignsController ( ISender sender ) : BaseController
                     dto.CreatedAt,
                     dto.BannerFileName,
                     dto.Status.ToString(),
-                    dto.RowVersion,
                     dto.CreatedByUserId,
                     dto.CategoryName
                 )
@@ -135,7 +136,6 @@ public class CampaignsController ( ISender sender ) : BaseController
                     dto.CreatedAt,
                     dto.BannerFileName,
                     dto.Status.ToString(),
-                    dto.RowVersion,
                     dto.CreatedByUserId,
                     dto.CategoryName)
             ),
