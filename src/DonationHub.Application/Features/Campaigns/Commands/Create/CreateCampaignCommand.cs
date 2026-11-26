@@ -1,4 +1,5 @@
-﻿using DonationHub.Application.Abstractions.Messaging;
+﻿using DonationHub.Application.Abstractions.Authentication;
+using DonationHub.Application.Abstractions.Messaging;
 using DonationHub.Application.Abstractions.Persistence;
 using DonationHub.Application.Features.Campaigns.Common;
 using DonationHub.Application.Features.Categories.Queries.IsExist;
@@ -18,13 +19,13 @@ public sealed record CreateCampaignCommand(
         string Currency,
         DateTimeOffset EndDate,
         Guid CategoryId,
-        string? BannerFileName,
-        Guid CreatedByUserId ) : ICommand<RequestResponse<Guid>>;
+        string? BannerFileName) : ICommand<RequestResponse<Guid>>;
 
 
 public sealed class CreateCampaignCommandHandler( 
     IMediator mediator,
     IBaseRepository<Campaign> repository,
+    ICurrentUser currentUser,
     TimeProvider timeProvider) 
     : ICommandHandler<CreateCampaignCommand, RequestResponse<Guid>>
 {
@@ -48,7 +49,7 @@ public sealed class CreateCampaignCommandHandler(
             request.EndDate,
             request.CategoryId,
             request.BannerFileName,
-            request.CreatedByUserId,
+            currentUser.UserId,
             utcNow
             );
 

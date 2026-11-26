@@ -40,11 +40,5 @@ public sealed class CreateCampaignCommandValidator : AbstractValidator<CreateCam
         RuleFor(x => x.BannerFileName)
             .MaximumLength(100).WithMessage("Banner file name cannot be more than 100 chars.");
 
-        RuleFor(x => x.CreatedByUserId)
-            .NotEmpty().WithMessage("Created By User Id is required.");
-
-
-
-
     }
 }

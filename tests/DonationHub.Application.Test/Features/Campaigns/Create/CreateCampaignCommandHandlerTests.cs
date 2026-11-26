@@ -1,4 +1,5 @@
-﻿using DonationHub.Application.Abstractions.Persistence;
+﻿using DonationHub.Application.Abstractions.Authentication;
+using DonationHub.Application.Abstractions.Persistence;
 using DonationHub.Application.Behaviors;
 using DonationHub.Application.Features.Campaigns.Commands.Create;
 using DonationHub.Application.Features.Campaigns.Commands.Update;
@@ -20,7 +21,7 @@ public class CreateCampaignCommandHandlerTests
     private readonly Mock<IBaseRepository<Campaign>> _repository = new();
     private readonly Mock<IUnitOfWork> _unitOfWork = new();
     private readonly Mock<ITransactionContext> _transactionContext = new();
-
+    private readonly Mock<ICurrentUser> _currentUser = new();
     private readonly DateTimeOffset _now =
         new(2026, 11, 23, 12, 0, 0, TimeSpan.Zero);
 
@@ -45,8 +46,7 @@ public class CreateCampaignCommandHandlerTests
             Currency: "EGP",
             EndDate: _now.AddDays(30),
             CategoryId: categoryId ?? Guid.NewGuid(),
-            BannerFileName: null,
-            CreatedByUserId: Guid.NewGuid());
+            BannerFileName: null);
 
     private void SetupCategoryExists(Guid categoryId)
     {
@@ -75,6 +75,7 @@ public class CreateCampaignCommandHandlerTests
         var handler = new CreateCampaignCommandHandler(
             _mediator.Object,
             _repository.Object,
+            _currentUser.Object,
             _timeProvider);
 
         var behavior = new SaveChangesBehavior<CreateCampaignCommand, RequestResponse<Guid>>(
@@ -110,6 +111,7 @@ public class CreateCampaignCommandHandlerTests
         var handler = new CreateCampaignCommandHandler(
             _mediator.Object,
             _repository.Object,
+            _currentUser.Object,
             _timeProvider);
 
         var behavior = new SaveChangesBehavior<CreateCampaignCommand, RequestResponse<Guid>>(

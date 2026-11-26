@@ -27,8 +27,6 @@ public class CampaignsController ( ISender sender ) : BaseController
     [HttpPost]
     public async Task<ActionResult> Create(CreateCampaignRequestViewModel request, CancellationToken ct)
     {
-        var userId = Guid.Parse(User.FindFirstValue(JwtRegisteredClaimNames.Sub)!);
-
         var result = await sender.Send(new CreateCampaignCommand(
             request.TitleAr,
             request.TitleEn,
@@ -38,8 +36,7 @@ public class CampaignsController ( ISender sender ) : BaseController
             request.Currency,
             request.EndDate,
             request.CategoryId,
-            request.BannerFileName,
-            userId
+            request.BannerFileName
             ), ct);
 
         var response = ResultMapper.Map(result,

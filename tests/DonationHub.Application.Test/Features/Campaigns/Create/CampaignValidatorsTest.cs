@@ -17,8 +17,7 @@ namespace DonationHub.Application.Test.Features.Campaigns.Create
                 "USD",
                 EndDate: DateTimeOffset.UtcNow.AddDays(10),
                 CategoryId: Guid.NewGuid(),
-                BannerFileName: null,
-                Guid.CreateVersion7());
+                BannerFileName: null);
         [Fact]
         public void Validate_WhenTitleArIsEmpty_ShouldHaveValidationError()
         {
