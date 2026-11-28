@@ -12,16 +12,18 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["DonationHub.Api/DonationHub.Api.csproj", "DonationHub.Api/"]
+COPY ["./DonationHub.Api.csproj", "DonationHub.Api/"]
 RUN dotnet restore "./DonationHub.Api/DonationHub.Api.csproj"
 COPY . .
-WORKDIR "/src/DonationHub.Api"
+WORKDIR "src/DonationHub.Api"
 RUN dotnet build "./DonationHub.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
+
+CMD ["dotnet", "run"]
 
 # This stage is used to publish the service project to be copied to the final stage
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./DonationHub.Api.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN "dotnet run" "./DonationHub.Api.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 # This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
 FROM base AS final

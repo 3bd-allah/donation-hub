@@ -9,5 +9,4 @@ public sealed record CreateCampaignRequestViewModel(
         string Currency,
         DateTimeOffset EndDate,
         Guid CategoryId,
-        string? BannerFileName,
-        Guid CreatedByUserId);
+        string? BannerFileName);

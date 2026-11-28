@@ -11,6 +11,5 @@ public sealed record CampaignListResponseViewModel(
     DateTimeOffset CreatedAt,
     string? BannerFileName,
     string Status,
-    byte[] RowVersion,
     Guid CreatedByUserId,
     string CategoryName);

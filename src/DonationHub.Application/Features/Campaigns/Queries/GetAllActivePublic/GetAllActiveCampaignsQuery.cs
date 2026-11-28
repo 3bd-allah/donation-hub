@@ -23,15 +23,17 @@ public sealed class GetAllActiveCampaignsQueryHandler(
             WebApplicationConstants.DefaultPreferredLanguage;
         var utcNow = timeProvider.GetUtcNow();
 
+        var isEnglish = preferredLanguage == WebApplicationConstants.DefaultPreferredLanguage; 
+
         var result = await repository.GetAllAsync(
             c => c.Status == CampaignStatus.Active,
             c => new CampaignDto
             {
                 Id = c.Id,
-                Title = preferredLanguage == "en" ? c.TitleEn : c.TitleAr,
-                Description = preferredLanguage == "en" ? c.DescriptionEn : c.DescriptionAr,
+                Title = isEnglish ? c.TitleEn : c.TitleAr,
+                Description = isEnglish ? c.DescriptionEn : c.DescriptionAr,
                 BannerFileName = c.BannerFileName,
-                CategoryName = request.Language == "en" ? c.Category.NameEn : c.Category.NameAr,
+                CategoryName = isEnglish ? c.Category.NameEn : c.Category.NameAr,
                 CreatedAt = c.CreatedAt,
                 EndDate = c.EndDate,
                 GoalAmount = c.GoalAmount,

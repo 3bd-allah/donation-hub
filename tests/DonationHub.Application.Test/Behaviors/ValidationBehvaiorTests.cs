@@ -26,8 +26,7 @@ public sealed class ValidationBehvaiorTests
             Currency: "EGP",
             EndDate: DateTimeOffset.UtcNow.AddDays(30),
             CategoryId: Guid.NewGuid(),
-            BannerFileName: null,
-            CreatedByUserId: Guid.NewGuid());
+            BannerFileName: null);
 
         var validationResult = new ValidationResult(
         [

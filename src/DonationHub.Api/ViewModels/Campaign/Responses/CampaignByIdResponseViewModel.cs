@@ -11,7 +11,6 @@ public sealed record CampaignByIdResponseViewModel(
     DateTimeOffset CreatedAt,
     string? BannerFileName,
     string Status,
-    byte[] RowVersion,
     Guid CreatedByUserId,
     string CategoryName,
     double? ProgressPercent,

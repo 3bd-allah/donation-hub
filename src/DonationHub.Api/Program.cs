@@ -1,5 +1,7 @@
 using DonationHub.Api.Exceptions;
+using DonationHub.Api.Infrastructure;
 using DonationHub.Application;
+using DonationHub.Application.Abstractions.Authentication;
 using DonationHub.Infrastructure;
 using DonationHub.Infrastructure.Persistence;
 using DonationHub.Infrastructure.Persistence.Seed;
@@ -28,6 +30,7 @@ public class Program
 
         builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
+        builder.Services.AddScoped<ICurrentUser, CurrentUser>();
         builder.Services.AddApplicationServices();
         builder.Services.AddInfrastructureServices(builder.Configuration);
 
